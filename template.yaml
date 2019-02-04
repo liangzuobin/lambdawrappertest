@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: test lambda wrapper with raw api proxy request.
+Globals:
+  Function:
+    Runtime: go1.x
+    Timeout: 10
+    MemorySize: 128
+    AutoPublishAlias: DEV
+    Tags:
+      appname: lambda-test
+    VpcConfig:
+      SecurityGroupIds:
+      - sg-12948270
+      SubnetIds:
+      - subnet-61677103
+      - subnet-7283b306
+Resources:
+  LambdaWrapperTest:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: lambda-wrapper-test
+      CodeUri: lambdawrappertest.zip
+      Handler: lambdawrappertest
+      Role: arn:aws-cn:iam::321659100662:role/fan-api-lambdaRole
+      Events:
+        LambdaWrapperTestApi:
+          Type: Api
+          Properties:
+            Method: GET
+            Path: /greeting/{name}
+            RestApiId:
+              Ref: LambdaWrapperTestApi
+  LambdaWrapperTestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: lambda-wrapper-test-api
+      StageName: beta
+      DefinitionBody:
+        swagger: 2
+        info:
+          title: lambda-wrapper-test-api
