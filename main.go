@@ -52,20 +52,25 @@ func wrap(handler interface{}) LambdaHandler {
 		args := reflect.Indirect(args)
 		for i := 0; i < args.NumField(); i++ {
 			key, ok := args.Type().Field(i).Tag.Lookup("json")
+
+			// take filed name as key
+			// lower case the first rune
 			if !ok {
-				// lower case the first rune
 				s := args.Type().Field(i).Name
 				for i, rn := range s {
 					key = string(unicode.ToLower(rn)) + s[i+1:]
 					break
 				}
 			}
+
 			if val, ok := req.PathParameters[key]; ok {
 				args.Field(i).Set(reflect.ValueOf(val))
 				continue
 			}
+
 			if val, ok := req.QueryStringParameters[key]; ok {
 				args.Field(i).Set(reflect.ValueOf(val))
+				continue
 			}
 		}
 
@@ -122,26 +127,25 @@ type request struct {
 	Name string `json:"name"`
 }
 
-// response should be like this, or you will get `no data` in your response
-// unless, you configure the integration response manually.
-type gatewayresp struct {
-	StatusCode int    `json:"statusCode"`
-	Body       string `json:"body"`
-}
-
 type response struct {
 	Name     string
 	Greeting string
 }
 
-func handler(_ context.Context, req request) (gatewayresp, error) {
+func handler(_ context.Context, req request) (events.APIGatewayProxyResponse, error) {
 	log.Printf("handler with %+v", req)
 	if len(req.Name) == 0 {
-		return gatewayresp{}, errors.New("name, please")
+		return events.APIGatewayProxyResponse{}, errors.New("name, please")
 	}
+
 	b, err := json.Marshal(&response{Name: req.Name, Greeting: "hello"})
 	if err != nil {
-		return gatewayresp{}, err
+		return events.APIGatewayProxyResponse{}, err
 	}
-	return gatewayresp{StatusCode: 200, Body: string(b)}, nil
+
+	resp := events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Body:       string(b),
+	}
+	return resp, nil
 }
