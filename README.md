@@ -1,7 +1,5 @@
 # A demo for aws lambda and ApiGateway integration.
 
-**NOTE:** It has a `template.yaml`, but I'm not sure if it is valid for AWS CloudFormation.
-
 ### Something unusual
 
 In `main()`, use `lambda.StartHandler(...)` and a custom `wrap()`
@@ -74,4 +72,10 @@ $ make local
 then:
 ```
 $ curl -i http://127.0.0.1:3000/greeting/foo
+```
+
+or you may want to deploy it to aws cloundformation:
+change the `STACK-NAME` and aws s3 path to your own.
+```
+make deploy
 ```
